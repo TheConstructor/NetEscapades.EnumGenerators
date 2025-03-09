@@ -146,8 +146,15 @@ public class DuplicateValueByteEnumExtensionsTests : ExtensionTests<DuplicateVal
     public void GeneratesTryParseIgnoreCaseAsAspan(string name) => GeneratesTryParseTest(name.AsSpan(), ignoreCase: true, allowMatchingMetadataAttribute: false);
 #endif
 
+    [Theory]
+    [MemberData(nameof(ValidEnumValues))]
+    public void GeneratesAsUnderlyingType(DuplicateValueByteEnum value) => GeneratesAsUnderlyingTypeTest(value, value.AsUnderlyingType());
+
     [Fact]
     public void GeneratesGetValues() => GeneratesGetValuesTest(DuplicateValueByteEnumExtensions.GetValues());
+
+    [Fact]
+    public void GeneratesGetValuesAsUnderlyingType() => GeneratesGetValuesAsUnderlyingTypeTest(DuplicateValueByteEnumExtensions.GetValuesAsUnderlyingType());
 
     [Fact]
     public void GeneratesGetNames() => base.GeneratesGetNamesTest(DuplicateValueByteEnumExtensions.GetNames());
