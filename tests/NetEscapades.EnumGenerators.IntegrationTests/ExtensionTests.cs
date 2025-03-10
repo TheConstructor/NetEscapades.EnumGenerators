@@ -253,7 +253,7 @@ public abstract class ExtensionTests<T> where T : struct
         return false;
     }
 
-    private bool TryGetDisplayNameOrDescription(
+    protected bool TryGetDisplayNameOrDescription(
         string? value,
 #if NETCOREAPP3_0_OR_GREATER
         [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out string? displayName)

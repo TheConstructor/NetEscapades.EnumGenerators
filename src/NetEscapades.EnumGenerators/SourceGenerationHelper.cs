@@ -152,8 +152,15 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
             {");
 
         var hasDisplayNames = false;
+        var underlyingValuesHandled = new HashSet<object>();
         foreach (var member in enumToGenerate.Names)
         {
+            // We can represent each value only by one string. .NET uses the first defined name for the underlying value, and so do we.
+            if (!underlyingValuesHandled.Add(member.Value.ConstantValue))
+            {
+                continue;
+            }
+
             hasDisplayNames |= member.Value.DisplayName is not null;
             sb.Append(@"
                 ").Append(fullyQualifiedName).Append('.').Append(member.Key)
@@ -170,8 +177,15 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
         {
             sb.Append(@"value switch
             {");
+            underlyingValuesHandled.Clear();
             foreach (var member in enumToGenerate.Names)
             {
+                // We can represent each value only by one string. .NET uses the first defined name for the underlying value, and so do we.
+                if (!underlyingValuesHandled.Add(member.Value.ConstantValue))
+                {
+                    continue;
+                }
+
                 sb.Append(@"
                 ").Append(fullyQualifiedName).Append('.').Append(member.Key)
                     .Append(" => ");
@@ -223,8 +237,14 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
         public static bool IsDefined(").Append(fullyQualifiedName).Append(@" value)
             => value switch
             {");
+        underlyingValuesHandled.Clear();
         foreach (var member in enumToGenerate.Names)
         {
+            // Similar to ToString, we can only check for each underlying value once
+            if (!underlyingValuesHandled.Add(member.Value.ConstantValue))
+            {
+                continue;
+            }
             sb.Append(@"
                 ").Append(fullyQualifiedName).Append('.').Append(member.Key)
                 .Append(" => true,");

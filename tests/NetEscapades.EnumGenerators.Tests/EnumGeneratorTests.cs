@@ -278,6 +278,30 @@ namespace MyTestNameSpace
         return Verifier.Verify(output, Settings());
     }
 
+    [Fact]
+    public Task CanGenerateEnumExtensionsWithSameUnderlyingValues()
+    {
+        const string input = @"using NetEscapades.EnumGenerators;
+using System.Diagnostics.CodeAnalysis;
+
+namespace MyTestNameSpace
+{
+    [EnumExtensions]
+    public enum MyEnum : byte
+    {
+        First = 0,
+        Min = First,
+        Second = 1,
+        [SuppressMessage(""Design"", ""CA1069:Enums should not have duplicate values"")]
+        Max = 1,
+    }
+}";
+        var (diagnostics, output) = TestHelpers.GetGeneratedOutput(Generators(), new(input));
+
+        Assert.Empty(diagnostics);
+        return Verifier.Verify(output, Settings());
+    }
+
     [Theory]
     [InlineData("", "System.Flags")]
     [InlineData("", "System.FlagsAttribute")]

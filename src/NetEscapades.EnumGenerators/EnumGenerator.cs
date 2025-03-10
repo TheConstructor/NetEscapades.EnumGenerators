@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -178,8 +179,7 @@ public class EnumGenerator : IIncrementalGenerator
 
         foreach (var member in enumMembers)
         {
-            if (member is not IFieldSymbol field
-                || field.ConstantValue is null)
+            if (member is not IFieldSymbol {ConstantValue: { } constantValue})
             {
                 continue;
             }
@@ -222,7 +222,7 @@ public class EnumGenerator : IIncrementalGenerator
                 isDisplayNameTheFirstPresence = displayNames.Add(displayName);    
             }
             
-            members.Add((member.Name, new EnumValueOption(displayName, isDisplayNameTheFirstPresence)));
+            members.Add((member.Name, new EnumValueOption(displayName, isDisplayNameTheFirstPresence, constantValue)));
         }
 
         return new EnumToGenerate(

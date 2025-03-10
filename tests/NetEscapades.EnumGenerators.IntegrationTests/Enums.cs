@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 
 [assembly:NetEscapades.EnumGenerators.EnumExtensions<DateTimeKind>()]
 [assembly:NetEscapades.EnumGenerators.EnumExtensions<System.IO.FileShare>()]
@@ -147,5 +148,15 @@ namespace NetEscapades.EnumGenerators.Nuget.NetStandard.Interceptors.Integration
         [Display(Name = "2nd")] Second = 1,
 
         Third = 2,
+    }
+
+    [EnumExtensions]
+    public enum DuplicateValueByteEnum : byte
+    {
+        First = 0,
+        Min = First,
+        Second = 1,
+        [SuppressMessage("Design", "CA1069:Enums should not have duplicate values")]
+        Max = 1,
     }
 }
