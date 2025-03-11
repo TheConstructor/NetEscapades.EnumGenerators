@@ -152,24 +152,61 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
             {");
 
         var hasDisplayNames = false;
-        var underlyingValuesHandled = new HashSet<object>();
-        foreach (var member in enumToGenerate.Names)
+        var distinctValuedMembers = GetDistinctValuedMembers(enumToGenerate);
+        foreach (var member in distinctValuedMembers)
         {
-            // We can represent each value only by one string. .NET uses the first defined name for the underlying value, and so do we.
-            if (!underlyingValuesHandled.Add(member.Value.ConstantValue))
-            {
-                continue;
-            }
-
             hasDisplayNames |= member.Value.DisplayName is not null;
             sb.Append(@"
                 ").Append(fullyQualifiedName).Append('.').Append(member.Key)
                 .Append(" => nameof(").Append(fullyQualifiedName).Append('.').Append(member.Key).Append("),");
         }
 
-        sb.Append(@"
-                _ => value.ToString(),
+        if (enumToGenerate.HasFlags)
+        {
+            sb.Append(@"
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this ").Append(fullyQualifiedName).Append(@" value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+");
+
+            for (var i = distinctValuedMembers.Count - 1; i >= 0; i--)
+            {
+                var member = distinctValuedMembers[i];
+                if (Equals(member.Value.ConstantValue, Convert.ChangeType(0, member.Value.ConstantValue.GetType())))
+                {
+                    // We would add 0-flags to everything -> skip it 
+                    continue;
+                }
+
+                sb.Append(@"
+            if ((remainder & ").Append(fullyQualifiedName).Append('.').Append(member.Key)
+                    .Append(") == ").Append(fullyQualifiedName).Append('.').Append(member.Key)
+                    .Append(@")
+            {
+                remainder &= ~ ")
+                    .Append(fullyQualifiedName).Append('.').Append(member.Key).Append(@";
+                sb.Insert(0, nameof(").Append(fullyQualifiedName).Append('.').Append(member.Key)
+                    .Append(@")).Insert(0, "", "");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }");
+            }
+
+            sb.Append(@"
+            return value.AsUnderlyingType().ToString();
+        }}");
+        }
+        else
+        {
+            sb.Append(@"
+                _ => value.AsUnderlyingType().ToString(),
+            };");
+        }
+
+        sb.Append(@"
 
         private static string ToStringFastWithMetadata(this ").Append(fullyQualifiedName).Append(@" value)
             => ");
@@ -177,15 +214,8 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
         {
             sb.Append(@"value switch
             {");
-            underlyingValuesHandled.Clear();
-            foreach (var member in enumToGenerate.Names)
+            foreach (var member in distinctValuedMembers)
             {
-                // We can represent each value only by one string. .NET uses the first defined name for the underlying value, and so do we.
-                if (!underlyingValuesHandled.Add(member.Value.ConstantValue))
-                {
-                    continue;
-                }
-
                 sb.Append(@"
                 ").Append(fullyQualifiedName).Append('.').Append(member.Key)
                     .Append(" => ");
@@ -200,9 +230,58 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
                 }
             }
 
-            sb.Append(@"
-                _ => value.ToString(),
+            if (enumToGenerate.HasFlags)
+            {
+                sb.Append(@"
+                _ => value.ToFlaggedStringWithMetadata(),
+            };
+
+        private static string ToFlaggedStringWithMetadata(this ").Append(fullyQualifiedName).Append(@" value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+");
+
+                for (var i = distinctValuedMembers.Count - 1; i >= 0; i--)
+                {
+                    var member = distinctValuedMembers[i];
+                    if (Equals(member.Value.ConstantValue, Convert.ChangeType(0, member.Value.ConstantValue.GetType())))
+                    {
+                        // We would add 0-flags to everything -> skip it 
+                        continue;
+                    }
+
+                    sb.Append(@"
+            if ((remainder & ").Append(fullyQualifiedName).Append('.').Append(member.Key)
+                        .Append(") == ").Append(fullyQualifiedName).Append('.').Append(member.Key)
+                        .Append(@")
+            {
+                remainder &= ~ ")
+                        .Append(fullyQualifiedName).Append('.').Append(member.Key).Append(@";
+                sb.Insert(0, ");
+                    if (member.Value.DisplayName is { } dn)
+                    {
+                        sb.Append(SymbolDisplay.FormatLiteral(dn, quote: true));
+                    }
+                    else
+                    {
+                        sb.Append("nameof(").Append(fullyQualifiedName).Append('.').Append(member.Key).Append(")");
+                    }
+                    sb.Append(@").Insert(0, "", "");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }");
+                }
+
+                sb.Append(@"
+            return value.AsUnderlyingType().ToString();
+        }}");
+            }
+            else
+            {
+                sb.Append(@"
+                _ => value.AsUnderlyingType().ToString(),
             };");
+            }
         }
         else
         {
@@ -237,14 +316,8 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
         public static bool IsDefined(").Append(fullyQualifiedName).Append(@" value)
             => value switch
             {");
-        underlyingValuesHandled.Clear();
-        foreach (var member in enumToGenerate.Names)
+        foreach (var member in distinctValuedMembers)
         {
-            // Similar to ToString, we can only check for each underlying value once
-            if (!underlyingValuesHandled.Add(member.Value.ConstantValue))
-            {
-                continue;
-            }
             sb.Append(@"
                 ").Append(fullyQualifiedName).Append('.').Append(member.Key)
                 .Append(" => true,");
@@ -981,5 +1054,25 @@ namespace ").Append(enumToGenerate.Namespace).Append(@"
             .Replace(' ', '_')
             .ToString();
         return (content, filename);
+    }
+
+    private static List<(string Key, EnumValueOption Value)> GetDistinctValuedMembers(EnumToGenerate enumToGenerate)
+    {
+        var underlyingValuesHandled = new HashSet<object>();
+        // For whatever reason .NET behaves differently for flags and non-flags, even for exactly defined matches
+        if (enumToGenerate.HasFlags)
+        {
+            return enumToGenerate.Names
+                .Reverse()
+                .Where(member => underlyingValuesHandled.Add(member.Value.ConstantValue))
+                .Reverse()
+                .ToList();
+        }
+        else
+        {
+            return enumToGenerate.Names
+                .Where(member => underlyingValuesHandled.Add(member.Value.ConstantValue))
+                .ToList();
+        }
     }
 }

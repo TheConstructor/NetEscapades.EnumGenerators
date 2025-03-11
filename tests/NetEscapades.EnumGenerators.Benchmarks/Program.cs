@@ -20,6 +20,17 @@ public enum TestEnum
     Third = 2,
 }
 
+[EnumExtensions]
+[Flags]
+public enum TestFlagEnum
+{
+    First = 1,
+
+    [Display(Name = "2nd")]
+    Second = 2,
+    Third = 4,
+}
+
 [MemoryDiagnoser]
 public class ToStringBenchmark
 {
@@ -37,6 +48,26 @@ public class ToStringBenchmark
     public string EnumToStringDisplayNameWithReflection()
     {
         return EnumHelper<TestEnum>.GetDisplayName(_enum);
+    }
+
+    [Benchmark]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public string ToStringFast()
+    {
+        return _enum.ToStringFast();
+    }
+}
+
+[MemoryDiagnoser]
+public class FlagEnumToStringBenchmark
+{
+    private static readonly TestFlagEnum _enum = TestFlagEnum.First | TestFlagEnum.Third;
+
+    [Benchmark(Baseline = true)]
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public string EnumToString()
+    {
+        return _enum.ToString();
     }
 
     [Benchmark]

@@ -117,9 +117,9 @@ public class FlagsEnumExtensionsTests : ExtensionTests<FlagsEnum>
     [MemberData(nameof(AllFlags))]
     public void HasFlags(FlagsEnum value, FlagsEnum flag)
     {
-        var isDefined = value.HasFlagFast(flag);
+        var hasFlag = value.HasFlagFast(flag);
 
-        isDefined.Should().Be(value.HasFlag(flag));
+        hasFlag.Should().Be(value.HasFlag(flag));
     }
 
     [Theory]

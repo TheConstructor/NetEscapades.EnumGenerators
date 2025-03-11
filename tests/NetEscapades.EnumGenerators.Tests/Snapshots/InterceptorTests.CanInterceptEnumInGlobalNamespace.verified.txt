@@ -139,8 +139,34 @@ namespace NetEscapades.EnumGenerators
                 global::MyEnum.First => nameof(global::MyEnum.First),
                 global::MyEnum.Second => nameof(global::MyEnum.Second),
                 global::MyEnum.Third => nameof(global::MyEnum.Third),
-                _ => value.ToString(),
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this global::MyEnum value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+
+            if ((remainder & global::MyEnum.Third) == global::MyEnum.Third)
+            {
+                remainder &= ~ global::MyEnum.Third;
+                sb.Insert(0, nameof(global::MyEnum.Third)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::MyEnum.Second) == global::MyEnum.Second)
+            {
+                remainder &= ~ global::MyEnum.Second;
+                sb.Insert(0, nameof(global::MyEnum.Second)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::MyEnum.First) == global::MyEnum.First)
+            {
+                remainder &= ~ global::MyEnum.First;
+                sb.Insert(0, nameof(global::MyEnum.First)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            return value.AsUnderlyingType().ToString();
+        }}
 
         private static string ToStringFastWithMetadata(this global::MyEnum value)
             => value.ToStringFast();

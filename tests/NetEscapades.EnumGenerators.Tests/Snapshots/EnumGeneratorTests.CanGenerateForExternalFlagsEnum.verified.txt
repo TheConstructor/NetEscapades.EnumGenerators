@@ -54,8 +54,46 @@ namespace System.IO
                 global::System.IO.FileShare.ReadWrite => nameof(global::System.IO.FileShare.ReadWrite),
                 global::System.IO.FileShare.Delete => nameof(global::System.IO.FileShare.Delete),
                 global::System.IO.FileShare.Inheritable => nameof(global::System.IO.FileShare.Inheritable),
-                _ => value.ToString(),
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this global::System.IO.FileShare value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+
+            if ((remainder & global::System.IO.FileShare.Inheritable) == global::System.IO.FileShare.Inheritable)
+            {
+                remainder &= ~ global::System.IO.FileShare.Inheritable;
+                sb.Insert(0, nameof(global::System.IO.FileShare.Inheritable)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::System.IO.FileShare.Delete) == global::System.IO.FileShare.Delete)
+            {
+                remainder &= ~ global::System.IO.FileShare.Delete;
+                sb.Insert(0, nameof(global::System.IO.FileShare.Delete)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::System.IO.FileShare.ReadWrite) == global::System.IO.FileShare.ReadWrite)
+            {
+                remainder &= ~ global::System.IO.FileShare.ReadWrite;
+                sb.Insert(0, nameof(global::System.IO.FileShare.ReadWrite)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::System.IO.FileShare.Write) == global::System.IO.FileShare.Write)
+            {
+                remainder &= ~ global::System.IO.FileShare.Write;
+                sb.Insert(0, nameof(global::System.IO.FileShare.Write)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::System.IO.FileShare.Read) == global::System.IO.FileShare.Read)
+            {
+                remainder &= ~ global::System.IO.FileShare.Read;
+                sb.Insert(0, nameof(global::System.IO.FileShare.Read)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            return value.AsUnderlyingType().ToString();
+        }}
 
         private static string ToStringFastWithMetadata(this global::System.IO.FileShare value)
             => value.ToStringFast();

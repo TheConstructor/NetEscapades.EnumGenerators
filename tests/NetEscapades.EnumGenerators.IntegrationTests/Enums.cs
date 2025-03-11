@@ -123,8 +123,8 @@ namespace NetEscapades.EnumGenerators.Nuget.NetStandard.Interceptors.Integration
     {
         None = 0,
         First = 1 << 0,
-        Second = 1 << 1,
         Third = 1 << 2,
+        Second = 1 << 1,
         Fourth = 1 << 3,
         ThirdAndFourth = Third | Fourth,
     }
@@ -158,5 +158,19 @@ namespace NetEscapades.EnumGenerators.Nuget.NetStandard.Interceptors.Integration
         Second = 1,
         [SuppressMessage("Design", "CA1069:Enums should not have duplicate values")]
         Max = 1,
+    }
+
+    [EnumExtensions]
+    [Flags]
+    public enum DuplicateValueByteFlagsEnum : byte
+    {
+        First = 1,
+        Min = First,
+        Second = 2,
+        Third = 4,
+
+        [SuppressMessage("Design", "CA1069:Enums should not have duplicate values")]
+        Max = 4,
+        FirstAndSecond = First | Second,
     }
 }

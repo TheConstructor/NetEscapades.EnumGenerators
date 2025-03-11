@@ -141,8 +141,34 @@ namespace Foo
                 global::Foo.MyEnum.First => nameof(global::Foo.MyEnum.First),
                 global::Foo.MyEnum.Second => nameof(global::Foo.MyEnum.Second),
                 global::Foo.MyEnum.Third => nameof(global::Foo.MyEnum.Third),
-                _ => value.ToString(),
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this global::Foo.MyEnum value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+
+            if ((remainder & global::Foo.MyEnum.Third) == global::Foo.MyEnum.Third)
+            {
+                remainder &= ~ global::Foo.MyEnum.Third;
+                sb.Insert(0, nameof(global::Foo.MyEnum.Third)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::Foo.MyEnum.Second) == global::Foo.MyEnum.Second)
+            {
+                remainder &= ~ global::Foo.MyEnum.Second;
+                sb.Insert(0, nameof(global::Foo.MyEnum.Second)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::Foo.MyEnum.First) == global::Foo.MyEnum.First)
+            {
+                remainder &= ~ global::Foo.MyEnum.First;
+                sb.Insert(0, nameof(global::Foo.MyEnum.First)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            return value.AsUnderlyingType().ToString();
+        }}
 
         private static string ToStringFastWithMetadata(this global::Foo.MyEnum value)
             => value.ToStringFast();
@@ -706,8 +732,34 @@ namespace Bar
                 global::Bar.MyEnum.First => nameof(global::Bar.MyEnum.First),
                 global::Bar.MyEnum.Second => nameof(global::Bar.MyEnum.Second),
                 global::Bar.MyEnum.Third => nameof(global::Bar.MyEnum.Third),
-                _ => value.ToString(),
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this global::Bar.MyEnum value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+
+            if ((remainder & global::Bar.MyEnum.Third) == global::Bar.MyEnum.Third)
+            {
+                remainder &= ~ global::Bar.MyEnum.Third;
+                sb.Insert(0, nameof(global::Bar.MyEnum.Third)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::Bar.MyEnum.Second) == global::Bar.MyEnum.Second)
+            {
+                remainder &= ~ global::Bar.MyEnum.Second;
+                sb.Insert(0, nameof(global::Bar.MyEnum.Second)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::Bar.MyEnum.First) == global::Bar.MyEnum.First)
+            {
+                remainder &= ~ global::Bar.MyEnum.First;
+                sb.Insert(0, nameof(global::Bar.MyEnum.First)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            return value.AsUnderlyingType().ToString();
+        }}
 
         private static string ToStringFastWithMetadata(this global::Bar.MyEnum value)
             => value.ToStringFast();

@@ -50,8 +50,22 @@ namespace Something.Blah
             {
                 global::Something.Blah.ShortName.First => nameof(global::Something.Blah.ShortName.First),
                 global::Something.Blah.ShortName.Second => nameof(global::Something.Blah.ShortName.Second),
-                _ => value.ToString(),
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this global::Something.Blah.ShortName value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+
+            if ((remainder & global::Something.Blah.ShortName.Second) == global::Something.Blah.ShortName.Second)
+            {
+                remainder &= ~ global::Something.Blah.ShortName.Second;
+                sb.Insert(0, nameof(global::Something.Blah.ShortName.Second)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            return value.AsUnderlyingType().ToString();
+        }}
 
         private static string ToStringFastWithMetadata(this global::Something.Blah.ShortName value)
             => value.ToStringFast();

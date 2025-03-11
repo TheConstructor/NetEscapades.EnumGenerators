@@ -51,8 +51,34 @@ namespace MyTestNameSpace
                 global::MyTestNameSpace.MyEnum.First => nameof(global::MyTestNameSpace.MyEnum.First),
                 global::MyTestNameSpace.MyEnum.Second => nameof(global::MyTestNameSpace.MyEnum.Second),
                 global::MyTestNameSpace.MyEnum.Third => nameof(global::MyTestNameSpace.MyEnum.Third),
-                _ => value.ToString(),
+                _ => value.ToFlaggedString(),
             };
+
+        private static string ToFlaggedString(this global::MyTestNameSpace.MyEnum value)
+        {{
+            var sb = new System.Text.StringBuilder();
+            var remainder = value;
+
+            if ((remainder & global::MyTestNameSpace.MyEnum.Third) == global::MyTestNameSpace.MyEnum.Third)
+            {
+                remainder &= ~ global::MyTestNameSpace.MyEnum.Third;
+                sb.Insert(0, nameof(global::MyTestNameSpace.MyEnum.Third)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::MyTestNameSpace.MyEnum.Second) == global::MyTestNameSpace.MyEnum.Second)
+            {
+                remainder &= ~ global::MyTestNameSpace.MyEnum.Second;
+                sb.Insert(0, nameof(global::MyTestNameSpace.MyEnum.Second)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            if ((remainder & global::MyTestNameSpace.MyEnum.First) == global::MyTestNameSpace.MyEnum.First)
+            {
+                remainder &= ~ global::MyTestNameSpace.MyEnum.First;
+                sb.Insert(0, nameof(global::MyTestNameSpace.MyEnum.First)).Insert(0, ", ");
+                if (remainder == 0) return sb.ToString(2, sb.Length - 2);
+            }
+            return value.AsUnderlyingType().ToString();
+        }}
 
         private static string ToStringFastWithMetadata(this global::MyTestNameSpace.MyEnum value)
             => value.ToStringFast();
